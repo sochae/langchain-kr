@@ -11,13 +11,17 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import PromptTemplate
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_teddynote import logging
 from dotenv import load_dotenv
-import glob
 import os
 
 
 # API KEY 정보로드
 load_dotenv()
+
+# 프로젝트 이름을 입력합니다. 
+logging.env_variable("LANGSMITH_PROJECT", "[Project] PDF RAG")
+logging.langsmith("PDF-RAG")
 
 # 캐시 디렉토리 생성
 if not os.path.exists(".cache"):
@@ -50,8 +54,9 @@ with st.sidebar:
     clear_btn = st.button("대화 초기화")
     # 파일 업로드
     uploaded_file = st.file_uploader("파일 업로드", type=["pdf"])
-    
-    selected_prompt = "prompts/pdf-rag.yaml"
+    # 모델 선택 메뉴
+    selected_model = st.selectbox("LLM 선택", ["gpt-4o", "gpt-4o-mini"], index=0)
+
 
 # 이전 대화를 출력
 def print_messages(): 
@@ -93,32 +98,14 @@ def embed_file(file):
     return retriever
     
 # 체인 생성
-def create_chain(retriever):
-    # prompt | llm | output_parser
-    
-    # prompt 적용
-    # prompt = load_prompt(prompt_filepath, encoding="utf-8")
-    
+def create_chain(retriever, model_name="gpt-4o"):
     # 단계 6: 프롬프트 생성(Create Prompt)
     # 프롬프트를 생성합니다.
-    prompt = PromptTemplate.from_template(
-        """You are an assistant for question-answering tasks. 
-    Use the following pieces of retrieved context to answer the question. 
-    If you don't know the answer, just say that you don't know. 
-    Answer in Korean.
-
-    #Context: 
-    {context}
-
-    #Question:
-    {question}
-
-    #Answer:"""
-    )
+    prompt = load_prompt("prompts/pdf-rag.yaml", encoding="utf-8")
 
     # 단계 7: 언어모델(LLM) 생성
     # 모델(LLM) 을 생성합니다.
-    llm = ChatOpenAI(model_name="gpt-4o", temperature=0)
+    llm = ChatOpenAI(model_name=model_name, temperature=0)
 
     # 단계 8: 체인(Chain) 생성
     chain = (
@@ -134,7 +121,7 @@ def create_chain(retriever):
 if uploaded_file:
   # 파일 업로드 후 retriever 생성 (작업시간이 오래 걸릴 예정...) 
   retriever = embed_file(uploaded_file)
-  chain = create_chain(retriever)
+  chain = create_chain(retriever, model_name=selected_model)
   st.session_state["chain"] = chain
 
 
