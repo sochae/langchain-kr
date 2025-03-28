@@ -53,7 +53,9 @@ with st.sidebar:
     # selected_prompt = "prompts/pdf-rag.yaml"
 
     # 모델 선택 메뉴
-    selected_model = st.selectbox("LLM 선택", ["gpt-4o", "gpt-4o-mini"], index=0)
+    selected_model = st.selectbox(
+        "LLM 선택", ["ollama", "gpt-4o", "gpt-4o-mini"], index=0
+    )
 
 
 # 이전 대화를 출력
@@ -76,33 +78,11 @@ def embed_file(file):
     with open(file_path, "wb") as f:
         f.write(file_content)
 
-    # retriever 생성 파일 분리
+    # retriever 생성 (retriever.py)파일 분리
     return create_retriever(file_path)
 
 
-# 체인 생성 파일 분리 
-# # 체인 생성
-# def create_chain(retriever, model_name="gpt-4o"):
-#     # prompt | llm | output_parser
-
-#     # 단계 6: 프롬프트 생성(Create Prompt)
-#     # 프롬프트를 생성합니다.
-#     prompt = load_prompt("prompts/pdf-rag.yaml", encoding="utf-8")
-
-#     # 단계 7: 언어모델(LLM) 생성
-#     # 모델(LLM) 을 생성합니다.
-#     llm = ChatOpenAI(model_name=model_name, temperature=0)
-
-#     # 단계 8: 체인(Chain) 생성
-#     chain = (
-#         {"context": retriever, "question": RunnablePassthrough()}
-#         | prompt
-#         | llm
-#         | StrOutputParser()
-#     )
-
-#     return chain
-
+# 체인 생성 (chain.py)파일 분리
 
 # 파일이 업로드 되었을 때
 if uploaded_file:
@@ -111,6 +91,7 @@ if uploaded_file:
 
     # (문서 업로드 시) chain 생성
     chain = create_chain(retriever, model_name=selected_model)
+
     # 생성한 chain을 session_state에 저장
     st.session_state["chain"] = chain
 
