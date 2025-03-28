@@ -29,7 +29,7 @@ if not os.path.exists(".cache/embeddings"):
     os.mkdir(".cache/embeddings")
 
 
-st.title("Local 모델 기반 RAG 👀")
+st.title("Ollama 모델 기반 RAG 👀")
 
 # 처음 1번만 실행하기 위한 코드
 if "messages" not in st.session_state:
